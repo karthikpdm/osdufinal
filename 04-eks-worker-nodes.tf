@@ -265,6 +265,7 @@
 
 # Worker Node IAM role for regional deployment
 # Data source to get the latest EKS-optimized AMI
+# Data source to get the latest EKS-optimized AMI
 data "aws_ssm_parameter" "eks_ami_id" {
   name = "/aws/service/eks/optimized-ami/${var.eks_version}/amazon-linux-2/recommended/image_id"
 }
@@ -358,7 +359,8 @@ resource "aws_instance" "osdu_istio_node_regional_az1" {
     aws_eks_cluster.osdu_eks_cluster_regional,
     aws_iam_role_policy_attachment.osdu_worker_node_policy_attach_regional,
     aws_iam_role_policy_attachment.osdu_eks_cni_policy_attach_regional,
-    aws_iam_role_policy_attachment.osdu_eks_registry_policy_attach_regional
+    aws_iam_role_policy_attachment.osdu_eks_registry_policy_attach_regional,
+    time_sleep.wait_for_auth
   ]
 }
 
@@ -406,7 +408,8 @@ resource "aws_instance" "osdu_backend_node_regional_az2" {
     aws_eks_cluster.osdu_eks_cluster_regional,
     aws_iam_role_policy_attachment.osdu_worker_node_policy_attach_regional,
     aws_iam_role_policy_attachment.osdu_eks_cni_policy_attach_regional,
-    aws_iam_role_policy_attachment.osdu_eks_registry_policy_attach_regional
+    aws_iam_role_policy_attachment.osdu_eks_registry_policy_attach_regional,
+    time_sleep.wait_for_auth
   ]
 }
 
@@ -454,7 +457,8 @@ resource "aws_instance" "osdu_frontend_node_regional_az1" {
     aws_eks_cluster.osdu_eks_cluster_regional,
     aws_iam_role_policy_attachment.osdu_worker_node_policy_attach_regional,
     aws_iam_role_policy_attachment.osdu_eks_cni_policy_attach_regional,
-    aws_iam_role_policy_attachment.osdu_eks_registry_policy_attach_regional
+    aws_iam_role_policy_attachment.osdu_eks_registry_policy_attach_regional,
+    time_sleep.wait_for_auth
   ]
 }
 
