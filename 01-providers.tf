@@ -84,14 +84,14 @@ data "aws_eks_cluster_auth" "bsp_eks" {
 
 
 
-# Data sources for EKS cluster authentication
-data "aws_eks_cluster" "bsp_eks" {
-  name = aws_eks_cluster.osdu_eks_cluster_regional.name
-}
+# # Data sources for EKS cluster authentication
+# data "aws_eks_cluster" "bsp_eks" {
+#   name = aws_eks_cluster.osdu_eks_cluster_regional.name
+# }
 
-data "aws_eks_cluster_auth" "bsp_eks" {
-  name = aws_eks_cluster.osdu_eks_cluster_regional.name
-}
+# data "aws_eks_cluster_auth" "bsp_eks" {
+#   name = aws_eks_cluster.osdu_eks_cluster_regional.name
+# }
 
 # Helm provider
 provider "helm" {
