@@ -85,17 +85,17 @@ data "aws_eks_cluster_auth" "bsp_eks" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-# EKS cluster data source
-data "aws_eks_cluster" "bsp_eks" {
-  name = aws_eks_cluster.osdu_eks_cluster_regional.name
-  depends_on = [aws_eks_cluster.osdu_eks_cluster_regional]
-}
+# # EKS cluster data source
+# data "aws_eks_cluster" "bsp_eks" {
+#   name = aws_eks_cluster.osdu_eks_cluster_regional.name
+#   depends_on = [aws_eks_cluster.osdu_eks_cluster_regional]
+# }
 
-# EKS cluster authentication data source
-data "aws_eks_cluster_auth" "bsp_eks" {
-  name = aws_eks_cluster.osdu_eks_cluster_regional.name
-  depends_on = [aws_eks_cluster.osdu_eks_cluster_regional]
-}
+# # EKS cluster authentication data source
+# data "aws_eks_cluster_auth" "bsp_eks" {
+#   name = aws_eks_cluster.osdu_eks_cluster_regional.name
+#   depends_on = [aws_eks_cluster.osdu_eks_cluster_regional]
+# }
 
 # Kubernetes provider
 provider "kubernetes" {
