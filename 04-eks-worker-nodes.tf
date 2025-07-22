@@ -264,6 +264,12 @@
 
 
 # Worker Node IAM role for regional deployment
+# Data source to get the latest EKS-optimized AMI
+data "aws_ssm_parameter" "eks_ami_id" {
+  name = "/aws/service/eks/optimized-ami/${var.eks_version}/amazon-linux-2/recommended/image_id"
+}
+
+# Worker Node IAM role for regional deployment
 resource "aws_iam_role" "osdu_worker_node_role_regional" {
   name = "osdu_worker_node_role_regional"
   
@@ -310,7 +316,7 @@ resource "aws_iam_instance_profile" "osdu_node_profile_regional" {
 
 # Regional EC2 instance for hosting Istio + Keycloak (AZ1)
 resource "aws_instance" "osdu_istio_node_regional_az1" {
-  ami                         = var.ami_id
+  ami                         = data.aws_ssm_parameter.eks_ami_id.value
   instance_type               = var.instance_type_worker
   subnet_id                   = data.aws_subnet.private_az1.id  # Reference from datasource.tf
   associate_public_ip_address = false
@@ -358,7 +364,7 @@ resource "aws_instance" "osdu_istio_node_regional_az1" {
 
 # Regional EC2 instance for hosting Backend services (AZ2)
 resource "aws_instance" "osdu_backend_node_regional_az2" {
-  ami                         = var.ami_id
+  ami                         = data.aws_ssm_parameter.eks_ami_id.value
   instance_type               = var.instance_type_worker
   subnet_id                   = data.aws_subnet.private_az2.id  # Reference from datasource.tf
   associate_public_ip_address = false
@@ -406,7 +412,7 @@ resource "aws_instance" "osdu_backend_node_regional_az2" {
 
 # Regional EC2 instance for hosting Frontend services (AZ1 for redundancy)
 resource "aws_instance" "osdu_frontend_node_regional_az1" {
-  ami                         = var.ami_id
+  ami                         = data.aws_ssm_parameter.eks_ami_id.value
   instance_type               = var.instance_type_worker
   subnet_id                   = data.aws_subnet.private_az1.id  # Reference from datasource.tf
   associate_public_ip_address = false
@@ -456,7 +462,7 @@ resource "aws_instance" "osdu_frontend_node_regional_az1" {
 resource "null_resource" "label_istio_nodes_regional" {
   provisioner "local-exec" {
     command     = <<EOT
-aws eks update-kubeconfig --region ${var.aws_region} --name ${var.eks_cluster_name}
+aws eks update-kubeconfig --region us-east-1 --name ${var.eks_cluster_name}
 
 nodes=$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}')
 for node in $nodes; do
@@ -479,7 +485,7 @@ EOT
 resource "null_resource" "label_backend_nodes_regional" {
   provisioner "local-exec" {
     command     = <<EOT
-aws eks update-kubeconfig --region ${var.aws_region} --name ${var.eks_cluster_name}
+aws eks update-kubeconfig --region us-east-1 --name ${var.eks_cluster_name}
 
 nodes=$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}')
 for node in $nodes; do
@@ -502,7 +508,7 @@ EOT
 resource "null_resource" "label_frontend_nodes_regional" {
   provisioner "local-exec" {
     command     = <<EOT
-aws eks update-kubeconfig --region ${var.aws_region} --name ${var.eks_cluster_name}
+aws eks update-kubeconfig --region us-east-1 --name ${var.eks_cluster_name}
 
 nodes=$(kubectl get nodes -o jsonpath='{.items[*].metadata.name}')
 for node in $nodes; do
@@ -543,31 +549,3 @@ output "osdu_worker_nodes_regional" {
   }
 }
 
-# # Additional variables (add to your variables.tf if not present)
-# variable "aws_region" {
-#   description = "AWS region for regional deployment"
-#   type        = string
-#   default     = "us-east-1"  # Change as needed
-# }
-
-# variable "ami_id" {
-#   description = "AMI ID for worker nodes"
-#   type        = string
-# }
-
-# variable "instance_type_worker" {
-#   description = "Instance type for worker nodes"
-#   type        = string
-#   default     = "m5.large"
-# }
-
-# variable "pem_key_name" {
-#   description = "EC2 Key Pair name for SSH access"
-#   type        = string
-# }
-
-# variable "osdu_proxy" {
-#   description = "Proxy configuration for OSDU"
-#   type        = string
-#   default     = ""
-# }
