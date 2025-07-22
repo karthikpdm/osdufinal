@@ -312,7 +312,7 @@ resource "null_resource" "label_default_namespace" {
 
 # Creating the Istio Base
 resource "helm_release" "osdu_istio_base" {
-  name = "osdu_istio_base"
+  name = "osdu-istio-base"
   /* Using the downloaded chart to maintain version consistency */
   # repository = "https://istio-release.storage.googleapis.com/charts"
   # chart      = "base"
@@ -328,7 +328,7 @@ resource "helm_release" "osdu_istio_base" {
 
 # Deploying the Istiod
 resource "helm_release" "osdu_istio_istiod" {
-  name = "osdu_istio_istiod"
+  name = "osdu-istio-istiod"
   /* Using the downloaded chart to maintain version consistency */
   # repository = "https://istio-release.storage.googleapis.com/charts"
   # chart      = "istiod"
