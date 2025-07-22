@@ -98,11 +98,11 @@
 #   default     = "osdu"
 # }
 
-# variable "osdu_data_partition" {
-#   type        = string
-#   description = "The default partition that will be created"
-#   default     = "osdu"
-# }
+variable "osdu_data_partition" {
+  type        = string
+  description = "The default partition that will be created"
+  default     = "osdu"
+}
 
 # variable "osdu_proxy" {
 #   type        = string
