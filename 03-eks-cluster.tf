@@ -257,20 +257,20 @@ resource "time_sleep" "wait_for_auth" {
   create_duration = "30s"
 }
 
-# EKS Access Entry for worker nodes (EKS 1.23+)
-resource "aws_eks_access_entry" "osdu_worker_nodes" {
-  cluster_name      = aws_eks_cluster.osdu_eks_cluster_regional.name
-  principal_arn     = aws_iam_role.osdu_worker_node_role_regional.arn
-  kubernetes_groups = ["system:bootstrappers", "system:nodes"]
-  type              = "STANDARD"
+# # EKS Access Entry for worker nodes (EKS 1.23+)
+# resource "aws_eks_access_entry" "osdu_worker_nodes" {
+#   cluster_name      = aws_eks_cluster.osdu_eks_cluster_regional.name
+#   principal_arn     = aws_iam_role.osdu_worker_node_role_regional.arn
+#   kubernetes_groups = ["system:bootstrappers", "system:nodes"]
+#   type              = "STANDARD"
 
-  depends_on = [
-    aws_eks_cluster.osdu_eks_cluster_regional,
-    aws_iam_role.osdu_worker_node_role_regional
-  ]
+#   depends_on = [
+#     aws_eks_cluster.osdu_eks_cluster_regional,
+#     aws_iam_role.osdu_worker_node_role_regional
+#   ]
 
-  tags = {
-    Name        = "osdu-worker-nodes-access"
-    Environment = var.osdu_env
-  }
-}
+#   tags = {
+#     Name        = "osdu-worker-nodes-access"
+#     Environment = var.osdu_env
+#   }
+# }
