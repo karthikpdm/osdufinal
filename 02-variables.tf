@@ -113,7 +113,7 @@
 variable "pem_key_name" {
   type        = string
   description = "The pem key that wil l be required to ssh to this instance"
-  default     = "osdu-jumpserver-key"
+  default     = "bspnew"
 }
 
 
