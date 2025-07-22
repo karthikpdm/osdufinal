@@ -1,7 +1,11 @@
 # Configuring the EBS CSI Driver for nodes to write to EBS volume
+# data "tls_certificate" "osdu_certificate" {
+#   url        = aws_eks_cluster.osdu_eks_cluster.identity[0].oidc[0].issuer
+#   depends_on = [aws_eks_cluster.osdu_eks_cluster_regional]
+# }
+
 data "tls_certificate" "osdu_certificate" {
-  url        = aws_eks_cluster.osdu_eks_cluster.identity[0].oidc[0].issuer
-  depends_on = [aws_eks_cluster.osdu_eks_cluster_regional]
+  url = aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer
 }
 
 # Configuring the open-id provider for EBS CSI Driver
