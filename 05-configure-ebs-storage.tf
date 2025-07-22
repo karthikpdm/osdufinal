@@ -94,16 +94,42 @@
 
 
 
-data "tls_certificate" "osdu_certificate" {
-  url = aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer
-}
+# data "tls_certificate" "osdu_certificate" {
+#   url = aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer
+# }
 
-# Configuring the open-id provider for EBS CSI Driver
+# # Configuring the open-id provider for EBS CSI Driver
+# resource "aws_iam_openid_connect_provider" "osdu_openid_provider" {
+#   client_id_list  = ["sts.amazonaws.com"]
+#   thumbprint_list = [data.tls_certificate.osdu_certificate.certificates[0].sha1_fingerprint]
+#   url             = aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer
+#   depends_on      = [aws_eks_cluster.osdu_eks_cluster_regional]
+# }
+
+# Solution 1: Use a known thumbprint instead of fetching dynamically
+# Replace the dynamic TLS certificate fetch with a static thumbprint
+
+# Remove this problematic data source:
+# data "tls_certificate" "osdu_certificate" {
+#   url = aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer
+# }
+
+# Replace with static thumbprint approach:
 resource "aws_iam_openid_connect_provider" "osdu_openid_provider" {
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [data.tls_certificate.osdu_certificate.certificates[0].sha1_fingerprint]
-  url             = aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer
-  depends_on      = [aws_eks_cluster.osdu_eks_cluster_regional]
+  client_id_list = ["sts.amazonaws.com"]
+  
+  # Use the standard EKS OIDC root CA thumbprint for us-east-1
+  # This is the official thumbprint that AWS uses for EKS OIDC
+  thumbprint_list = ["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]
+  
+  url = aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer
+  
+  depends_on = [aws_eks_cluster.osdu_eks_cluster_regional]
+
+  tags = {
+    Name        = "osdu-eks-oidc-provider"
+    Environment = var.osdu_env
+  }
 }
 
 # Roles for the EBS CSI Driver
