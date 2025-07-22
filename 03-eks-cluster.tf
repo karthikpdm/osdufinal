@@ -223,3 +223,26 @@ output "osdu_eks_cluster_name" {
   description = "Name of the OSDU regional EKS cluster"
 }
 
+
+
+# EKS Access Entry for worker nodes (EKS 1.23+)
+# EKS Access Entry for worker nodes (EKS 1.23+)
+resource "aws_eks_access_entry" "osdu_worker_nodes" {
+  cluster_name      = aws_eks_cluster.osdu_eks_cluster_regional.name
+  principal_arn     = aws_iam_role.osdu_worker_node_role_regional.arn
+  kubernetes_groups = ["system:bootstrappers", "system:nodes"]
+  type              = "STANDARD"
+
+  depends_on = [
+    aws_eks_cluster.osdu_eks_cluster_regional,
+    aws_iam_role.osdu_worker_node_role_regional
+  ]
+
+  tags = {
+    Name        = "osdu-worker-nodes-access"
+    Environment = var.osdu_env
+  }
+}
+  
+
+
