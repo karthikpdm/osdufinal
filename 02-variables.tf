@@ -116,6 +116,12 @@ variable "pem_key_name" {
   default     = "bspnew"
 }
 
+# Additional variables (add to your variables.tf if not present)
+variable "aws_region" {
+  description = "AWS region for regional deployment"
+  type        = string
+  default     = "us-east-1"  # Change as needed
+}
 
 
 
