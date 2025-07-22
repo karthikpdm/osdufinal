@@ -1,7 +1,7 @@
 # Deploying the OSDU Micro services
 
 resource "helm_release" "osdu_install_services" {
-  name = "osdu_install_services"
+  name = "osdu-install-services"
   /* Using the downloaded chart to maintain version consistency */
   chart     = "${path.module}/charts/${var.tar_osdu_baremetal}"
   version   = "0.27.2"
