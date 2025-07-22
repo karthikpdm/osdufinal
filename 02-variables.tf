@@ -176,6 +176,31 @@ variable "osdu_env" {
 # }
 
 
+variable "tar_istio_base" {
+  type        = string
+  description = "Istio base tar"
+  default     = "istio-base-1.21.0.tgz"
+}
+
+variable "tar_istiod" {
+  type        = string
+  description = "Istiod tar"
+  default     = "istiod-1.21.0.tgz"
+}
+
+variable "tar_istio_gateway" {
+  type        = string
+  description = "Istio gateway tar"
+  default     = "istio-gateway-1.21.0.tgz"
+}
+
+variable "tar_osdu_baremetal" {
+  type        = string
+  description = "OSDU helm bundle with all the comonents like osdu_microservices, keycloak, postgresql, minio, elasticsearch, rabbitmq, ariflow, redis"
+  default     = "osdu-gc-baremetal-0.27.2.tgz"
+}
+
+
 
 
 
