@@ -229,46 +229,46 @@ output "osdu_eks_cluster_name" {
 # EKS Access Entry for worker nodes (EKS 1.23+)
 # Create aws-auth ConfigMap to allow worker nodes to join
 # Create aws-auth ConfigMap to allow worker nodes to join
-resource "kubernetes_config_map_v1" "aws_auth" {
-  metadata {
-    name      = "aws-auth"
-    namespace = "kube-system"
-  }
+# resource "kubernetes_config_map_v1" "aws_auth" {
+#   metadata {
+#     name      = "aws-auth"
+#     namespace = "kube-system"
+#   }
 
-  data = {
-    mapRoles = yamlencode([
-      {
-        rolearn  = aws_iam_role.osdu_worker_node_role_regional.arn
-        username = "system:node:{{EC2PrivateDNSName}}"
-        groups = [
-          "system:bootstrappers",
-          "system:nodes"
-        ]
-      }
-    ])
-  }
+#   data = {
+#     mapRoles = yamlencode([
+#       {
+#         rolearn  = aws_iam_role.osdu_worker_node_role_regional.arn
+#         username = "system:node:{{EC2PrivateDNSName}}"
+#         groups = [
+#           "system:bootstrappers",
+#           "system:nodes"
+#         ]
+#       }
+#     ])
+#   }
 
-  depends_on = [
-    aws_eks_cluster.osdu_eks_cluster_regional,
-    aws_iam_role.osdu_worker_node_role_regional
-  ]
-}
+#   depends_on = [
+#     aws_eks_cluster.osdu_eks_cluster_regional,
+#     aws_iam_role.osdu_worker_node_role_regional
+#   ]
+# }
 
-# EKS Access Entry for worker nodes (EKS 1.23+)
-resource "aws_eks_access_entry" "osdu_worker_nodes" {
-  cluster_name      = aws_eks_cluster.osdu_eks_cluster_regional.name
-  principal_arn     = aws_iam_role.osdu_worker_node_role_regional.arn
-  kubernetes_groups = ["system:bootstrappers", "system:nodes"]
-  type              = "STANDARD"
+# # EKS Access Entry for worker nodes (EKS 1.23+)
+# resource "aws_eks_access_entry" "osdu_worker_nodes" {
+#   cluster_name      = aws_eks_cluster.osdu_eks_cluster_regional.name
+#   principal_arn     = aws_iam_role.osdu_worker_node_role_regional.arn
+#   kubernetes_groups = ["system:bootstrappers", "system:nodes"]
+#   type              = "STANDARD"
 
-  depends_on = [
-    aws_eks_cluster.osdu_eks_cluster_regional,
-    aws_iam_role.osdu_worker_node_role_regional
-  ]
+#   depends_on = [
+#     aws_eks_cluster.osdu_eks_cluster_regional,
+#     aws_iam_role.osdu_worker_node_role_regional
+#   ]
 
-  tags = {
-    Name        = "osdu-worker-nodes-access"
-    Environment = var.osdu_env
-  }
-}
+#   tags = {
+#     Name        = "osdu-worker-nodes-access"
+#     Environment = var.osdu_env
+#   }
+# }
 
