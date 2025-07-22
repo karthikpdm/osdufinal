@@ -228,6 +228,7 @@ output "osdu_eks_cluster_name" {
 # EKS Access Entry for worker nodes (EKS 1.23+)
 # EKS Access Entry for worker nodes (EKS 1.23+)
 # Create aws-auth ConfigMap to allow worker nodes to join
+# Create aws-auth ConfigMap to allow worker nodes to join
 resource "kubernetes_config_map_v1" "aws_auth" {
   metadata {
     name      = "aws-auth"
@@ -270,5 +271,4 @@ resource "aws_eks_access_entry" "osdu_worker_nodes" {
     Environment = var.osdu_env
   }
 }
-
 
