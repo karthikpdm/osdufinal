@@ -227,6 +227,33 @@ output "osdu_eks_cluster_name" {
 
 # EKS Access Entry for worker nodes (EKS 1.23+)
 # EKS Access Entry for worker nodes (EKS 1.23+)
+# Create aws-auth ConfigMap to allow worker nodes to join
+resource "kubernetes_config_map_v1" "aws_auth" {
+  metadata {
+    name      = "aws-auth"
+    namespace = "kube-system"
+  }
+
+  data = {
+    mapRoles = yamlencode([
+      {
+        rolearn  = aws_iam_role.osdu_worker_node_role_regional.arn
+        username = "system:node:{{EC2PrivateDNSName}}"
+        groups = [
+          "system:bootstrappers",
+          "system:nodes"
+        ]
+      }
+    ])
+  }
+
+  depends_on = [
+    aws_eks_cluster.osdu_eks_cluster_regional,
+    aws_iam_role.osdu_worker_node_role_regional
+  ]
+}
+
+# EKS Access Entry for worker nodes (EKS 1.23+)
 resource "aws_eks_access_entry" "osdu_worker_nodes" {
   cluster_name      = aws_eks_cluster.osdu_eks_cluster_regional.name
   principal_arn     = aws_iam_role.osdu_worker_node_role_regional.arn
@@ -243,6 +270,5 @@ resource "aws_eks_access_entry" "osdu_worker_nodes" {
     Environment = var.osdu_env
   }
 }
-  
 
 
