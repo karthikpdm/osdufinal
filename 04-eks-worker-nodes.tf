@@ -543,31 +543,31 @@ output "osdu_worker_nodes_regional" {
   }
 }
 
-# Additional variables (add to your variables.tf if not present)
-variable "aws_region" {
-  description = "AWS region for regional deployment"
-  type        = string
-  default     = "us-east-1"  # Change as needed
-}
+# # Additional variables (add to your variables.tf if not present)
+# variable "aws_region" {
+#   description = "AWS region for regional deployment"
+#   type        = string
+#   default     = "us-east-1"  # Change as needed
+# }
 
-variable "ami_id" {
-  description = "AMI ID for worker nodes"
-  type        = string
-}
+# variable "ami_id" {
+#   description = "AMI ID for worker nodes"
+#   type        = string
+# }
 
-variable "instance_type_worker" {
-  description = "Instance type for worker nodes"
-  type        = string
-  default     = "m5.large"
-}
+# variable "instance_type_worker" {
+#   description = "Instance type for worker nodes"
+#   type        = string
+#   default     = "m5.large"
+# }
 
-variable "pem_key_name" {
-  description = "EC2 Key Pair name for SSH access"
-  type        = string
-}
+# variable "pem_key_name" {
+#   description = "EC2 Key Pair name for SSH access"
+#   type        = string
+# }
 
-variable "osdu_proxy" {
-  description = "Proxy configuration for OSDU"
-  type        = string
-  default     = ""
-}
+# variable "osdu_proxy" {
+#   description = "Proxy configuration for OSDU"
+#   type        = string
+#   default     = ""
+# }
