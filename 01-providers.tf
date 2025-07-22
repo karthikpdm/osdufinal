@@ -72,13 +72,13 @@ data "aws_region" "current" {}
 # FIXED: Add the missing EKS cluster data source
 data "aws_eks_cluster" "bsp_eks" {
   name = aws_eks_cluster.osdu_eks_cluster_regional.name
-  depends_on = [aws_eks_cluster.main]
+  depends_on = [aws_eks_cluster.osdu_eks_cluster_regional]
 }
 
 # EKS cluster authentication data source
 data "aws_eks_cluster_auth" "bsp_eks" {
   name = aws_eks_cluster.osdu_eks_cluster_regional.name
-  depends_on = [aws_eks_cluster.main]
+  depends_on = [aws_eks_cluster.osdu_eks_cluster_regional]
 }
 
 
