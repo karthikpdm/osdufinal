@@ -81,7 +81,47 @@ data "aws_eks_cluster_auth" "bsp_eks" {
   depends_on = [aws_eks_cluster.osdu_eks_cluster_regional]
 }
 
+# Get current AWS account ID and region
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
 
+# EKS cluster data source
+data "aws_eks_cluster" "bsp_eks" {
+  name = aws_eks_cluster.osdu_eks_cluster_regional.name
+  depends_on = [aws_eks_cluster.osdu_eks_cluster_regional]
+}
+
+# EKS cluster authentication data source
+data "aws_eks_cluster_auth" "bsp_eks" {
+  name = aws_eks_cluster.osdu_eks_cluster_regional.name
+  depends_on = [aws_eks_cluster.osdu_eks_cluster_regional]
+}
+
+# Kubernetes provider
+provider "kubernetes" {
+  host                   = aws_eks_cluster.osdu_eks_cluster_regional.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.osdu_eks_cluster_regional.certificate_authority[0].data)
+  
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args = ["eks", "get-token", "--cluster-name", aws_eks_cluster.osdu_eks_cluster_regional.name, "--region", "us-east-1"]
+  }
+}
+
+# Helm provider
+provider "helm" {
+  kubernetes = {  # ← ADD THE = SIGN HERE
+    host                   = aws_eks_cluster.osdu_eks_cluster_regional.endpoint
+    cluster_ca_certificate = base64decode(aws_eks_cluster.osdu_eks_cluster_regional.certificate_authority[0].data)
+    
+    exec = {  # ← ADD THE = SIGN HERE TOO
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.osdu_eks_cluster_regional.name, "--region", "us-east-1"]
+    }
+  }
+}
 
 
 # # Data sources for EKS cluster authentication
@@ -107,44 +147,44 @@ data "aws_eks_cluster_auth" "bsp_eks" {
 #   }
 # }
 
-# Kubernetes provider
-provider "kubernetes" {
-  host                   = aws_eks_cluster.osdu_eks_cluster_regional.endpoint
-  cluster_ca_certificate = base64decode(aws_eks_cluster.osdu_eks_cluster_regional.certificate_authority[0].data)
+# # Kubernetes provider
+# provider "kubernetes" {
+#   host                   = aws_eks_cluster.osdu_eks_cluster_regional.endpoint
+#   cluster_ca_certificate = base64decode(aws_eks_cluster.osdu_eks_cluster_regional.certificate_authority[0].data)
   
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    args = ["eks", "get-token", "--cluster-name", aws_eks_cluster.osdu_eks_cluster_regional.name, "--region", "us-east-1"]
-  }
-}
+#   exec {
+#     api_version = "client.authentication.k8s.io/v1beta1"
+#     command     = "aws"
+#     args = ["eks", "get-token", "--cluster-name", aws_eks_cluster.osdu_eks_cluster_regional.name, "--region", "us-east-1"]
+#   }
+# }
 
+
+# # provider "helm" {
+# #   kubernetes = {
+# #     host                   = aws_eks_cluster.osdu_eks_cluster_regional.endpoint
+# #     cluster_ca_certificate = base64decode(aws_eks_cluster.osdu_eks_cluster_regional.certificate_authority[0].data)
+    
+# #     exec = {
+# #       api_version = "client.authentication.k8s.io/v1beta1"
+# #       command     = "aws"
+# #       args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.osdu_eks_cluster_regional.name, "--region", "us-east-1"]
+# #     }
+# #   }
+# # }
 
 # provider "helm" {
-#   kubernetes = {
+#   kubernetes {
 #     host                   = aws_eks_cluster.osdu_eks_cluster_regional.endpoint
 #     cluster_ca_certificate = base64decode(aws_eks_cluster.osdu_eks_cluster_regional.certificate_authority[0].data)
     
-#     exec = {
+#     exec {
 #       api_version = "client.authentication.k8s.io/v1beta1"
 #       command     = "aws"
 #       args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.osdu_eks_cluster_regional.name, "--region", "us-east-1"]
 #     }
 #   }
 # }
-
-provider "helm" {
-  kubernetes {
-    host                   = aws_eks_cluster.osdu_eks_cluster_regional.endpoint
-    cluster_ca_certificate = base64decode(aws_eks_cluster.osdu_eks_cluster_regional.certificate_authority[0].data)
-    
-    exec {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.osdu_eks_cluster_regional.name, "--region", "us-east-1"]
-    }
-  }
-}
 
 
 
