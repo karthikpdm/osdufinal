@@ -9,7 +9,7 @@
 data "aws_vpc" "main" {
   filter {
     name   = "tag:Name"
-    values = ["pw-vpc-poc"]
+    values = ["bsp-vpc-poc"]
   }
 }
 
@@ -17,7 +17,7 @@ data "aws_vpc" "main" {
 data "aws_subnet" "private_az1" {
   filter {
     name   = "tag:Name"
-    values = ["pw-private-subnet-az1-poc"]
+    values = ["bsp-private-subnet-az1-poc"]
   }
 }
 
@@ -25,7 +25,7 @@ data "aws_subnet" "private_az1" {
 data "aws_subnet" "private_az2" {
   filter {
     name   = "tag:Name"
-    values = ["pw-private-subnet-az2-poc"]
+    values = ["bsp-private-subnet-az2-poc"]
   }
 }
 
@@ -33,14 +33,14 @@ data "aws_subnet" "private_az2" {
 data "aws_route_table" "private_az1" {
   filter {
     name   = "tag:Name"
-    values = ["pw-private-route-table-az1-poc"]
+    values = ["bsp-private-route-table-az1-poc"]
   }
 }
 
 data "aws_route_table" "private_az2" {
   filter {
     name   = "tag:Name"
-    values = ["pw-private-route-table-az2-poc"]
+    values = ["bsp-private-route-table-az2-poc"]
   }
 }
 
