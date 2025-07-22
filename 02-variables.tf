@@ -168,12 +168,12 @@ variable "osdu_env" {
   default     = "osdu"
 }
 
-variable "ami_id" {
-  type        = string
-  description = "We are using the Linux provided by AWS. It has auto bootstrap logic for nodes to join the cluster"
-  # default     = "ami-02987219953aaf8e3"
-  default  = "ami-084a44881bcb0d54c"
-}
+# variable "ami_id" {
+#   type        = string
+#   description = "We are using the Linux provided by AWS. It has auto bootstrap logic for nodes to join the cluster"
+#   # default     = "ami-02987219953aaf8e3"
+#   default  = "ami-084a44881bcb0d54c"
+# }
 
 
 
