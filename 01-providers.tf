@@ -81,9 +81,9 @@ data "aws_eks_cluster_auth" "bsp_eks" {
   depends_on = [aws_eks_cluster.osdu_eks_cluster_regional]
 }
 
-# Get current AWS account ID and region
-data "aws_caller_identity" "current" {}
-data "aws_region" "current" {}
+# # Get current AWS account ID and region
+# data "aws_caller_identity" "current" {}
+# data "aws_region" "current" {}
 
 # # EKS cluster data source
 # data "aws_eks_cluster" "bsp_eks" {
