@@ -367,12 +367,13 @@ resource "helm_release" "osdu_istio_istiod" {
   ]
 }
 
-# Deploying the Istio Ingress Gateway
+
+
+
+
+# Deploying the Istio Ingress Gateway with Simple ALB
 resource "helm_release" "istio_ingressgateway" {
   name = "istio-ingressgateway"
-  /* Using the downloaded chart to maintain version consistency */
-  # repository = "https://istio-release.storage.googleapis.com/charts"
-  # chart      = "gateway"
   chart     = "${path.module}/charts/${var.tar_istio_gateway}"
   namespace = kubernetes_namespace.istio_gateway_namespace.metadata[0].name
   version   = "1.21.0"
@@ -387,16 +388,26 @@ resource "helm_release" "istio_ingressgateway" {
 
       service = {
         type = "LoadBalancer"
+        # Simple ALB annotations for POC
+        annotations = {
+          "service.beta.kubernetes.io/aws-load-balancer-type" = "external"
+          "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "ip"
+          "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
+          "service.beta.kubernetes.io/aws-load-balancer-backend-protocol" = "http"
+        }
+        
         ports = [
           {
             port       = 80
             targetPort = 8080
             name       = "http2"
+            protocol   = "TCP"
           },
           {
             port       = 443
             targetPort = 8443
             name       = "https"
+            protocol   = "TCP"
           }
         ]
       }
@@ -424,6 +435,64 @@ resource "helm_release" "istio_ingressgateway" {
     kubernetes_namespace.istio_gateway_namespace
   ]
 }
+
+# # Deploying the Istio Ingress Gateway
+# resource "helm_release" "istio_ingressgateway" {
+#   name = "istio-ingressgateway"
+#   /* Using the downloaded chart to maintain version consistency */
+#   # repository = "https://istio-release.storage.googleapis.com/charts"
+#   # chart      = "gateway"
+#   chart     = "${path.module}/charts/${var.tar_istio_gateway}"
+#   namespace = kubernetes_namespace.istio_gateway_namespace.metadata[0].name
+#   version   = "1.21.0"
+
+#   values = [
+#     yamlencode({
+#       image = {
+#         repository = "docker.io/istio/proxyv2"
+#         tag        = "1.21.0"
+#         pullPolicy = "IfNotPresent"
+#       }
+
+#       service = {
+#         type = "LoadBalancer"
+#         ports = [
+#           {
+#             port       = 80
+#             targetPort = 8080
+#             name       = "http2"
+#           },
+#           {
+#             port       = 443
+#             targetPort = 8443
+#             name       = "https"
+#           }
+#         ]
+#       }
+
+#       nodeSelector = {
+#         "node-role" = "osdu_istio_node"
+#       }
+
+#       tolerations = [
+#         {
+#           key      = "role"
+#           operator = "Equal"
+#           value    = "osdu_istio_node"
+#           effect   = "NoSchedule"
+#         }
+#       ]
+#     })
+#   ]
+  
+#   wait    = true
+#   timeout = 600
+  
+#   depends_on = [
+#     helm_release.osdu_istio_istiod,
+#     kubernetes_namespace.istio_gateway_namespace
+#   ]
+# }
 
 # Wait for ingress gateway to become available
 resource "null_resource" "wait_for_ingressgateway" {
