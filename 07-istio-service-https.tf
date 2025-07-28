@@ -369,434 +369,434 @@ resource "helm_release" "osdu_istio_istiod" {
 
 
 
-########################################################################################################################################################################
+# ########################################################################################################################################################################
 
 
 
-# ===================================
-# AWS LOAD BALANCER CONTROLLER SETUP
-# ===================================
+# # ===================================
+# # AWS LOAD BALANCER CONTROLLER SETUP
+# # ===================================
 
-# Add EKS Helm repository for AWS Load Balancer Controller
-resource "helm_release" "aws_load_balancer_controller" {
-  name       = "aws-load-balancer-controller"
-  repository = "https://aws.github.io/eks-charts"
-  chart      = "aws-load-balancer-controller"
-  namespace  = "kube-system"
-  version    = "1.13.3"
+# # Add EKS Helm repository for AWS Load Balancer Controller
+# resource "helm_release" "aws_load_balancer_controller" {
+#   name       = "aws-load-balancer-controller"
+#   repository = "https://aws.github.io/eks-charts"
+#   chart      = "aws-load-balancer-controller"
+#   namespace  = "kube-system"
+#   version    = "1.13.3"
 
-  values = [
-    yamlencode({
-      clusterName = var.eks_cluster_name
+#   values = [
+#     yamlencode({
+#       clusterName = var.eks_cluster_name
       
-      serviceAccount = {
-        create = true
-        name   = "aws-load-balancer-controller"
-        annotations = {
-          "eks.amazonaws.com/role-arn" = aws_iam_role.aws_load_balancer_controller_role.arn
-        }
-      }
+#       serviceAccount = {
+#         create = true
+#         name   = "aws-load-balancer-controller"
+#         annotations = {
+#           "eks.amazonaws.com/role-arn" = aws_iam_role.aws_load_balancer_controller_role.arn
+#         }
+#       }
 
-      # Resource configuration
-      resources = {
-        limits = {
-          cpu    = "200m"
-          memory = "500Mi"
-        }
-        requests = {
-          cpu    = "100m"
-          memory = "200Mi"
-        }
-      }
+#       # Resource configuration
+#       resources = {
+#         limits = {
+#           cpu    = "200m"
+#           memory = "500Mi"
+#         }
+#         requests = {
+#           cpu    = "100m"
+#           memory = "200Mi"
+#         }
+#       }
 
-      # Node placement
-      nodeSelector = {
-        "kubernetes.io/os" = "linux"
-      }
+#       # Node placement
+#       nodeSelector = {
+#         "kubernetes.io/os" = "linux"
+#       }
 
-      # Tolerations for system workloads
-      tolerations = [
-        {
-          key      = "CriticalAddonsOnly"
-          operator = "Exists"
-        }
-      ]
+#       # Tolerations for system workloads
+#       tolerations = [
+#         {
+#           key      = "CriticalAddonsOnly"
+#           operator = "Exists"
+#         }
+#       ]
 
-      # Additional settings
-      region = var.aws_region
-      vpcId  = data.aws_vpc.main.id
-    })
-  ]
+#       # Additional settings
+#       region = var.aws_region
+#       vpcId  = data.aws_vpc.main.id
+#     })
+#   ]
 
-  # Proper dependencies
-  depends_on = [
-    aws_eks_cluster.osdu_eks_cluster_regional,
-    kubernetes_config_map_v1.aws_auth,
-    aws_iam_role.aws_load_balancer_controller_role,
-    aws_iam_role_policy_attachment.aws_load_balancer_controller_policy
-  ]
+#   # Proper dependencies
+#   depends_on = [
+#     aws_eks_cluster.osdu_eks_cluster_regional,
+#     kubernetes_config_map_v1.aws_auth,
+#     aws_iam_role.aws_load_balancer_controller_role,
+#     aws_iam_role_policy_attachment.aws_load_balancer_controller_policy
+#   ]
 
-  wait    = true
-  timeout = 600
-}
+#   wait    = true
+#   timeout = 600
+# }
 
-# ===================================
-# IAM ROLE FOR AWS LOAD BALANCER CONTROLLER
-# ===================================
+# # ===================================
+# # IAM ROLE FOR AWS LOAD BALANCER CONTROLLER
+# # ===================================
 
-# IAM Role for AWS Load Balancer Controller
-resource "aws_iam_role" "aws_load_balancer_controller_role" {
-  name = "aws-load-balancer-controller-role"
+# # IAM Role for AWS Load Balancer Controller
+# resource "aws_iam_role" "aws_load_balancer_controller_role" {
+#   name = "aws-load-balancer-controller-role"
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Federated = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer, "https://", "")}"
-        }
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Condition = {
-          StringEquals = {
-            "${replace(aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer, "https://", "")}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
-            "${replace(aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer, "https://", "")}:aud" = "sts.amazonaws.com"
-          }
-        }
-      }
-    ]
-  })
+#   assume_role_policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Effect = "Allow"
+#         Principal = {
+#           Federated = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer, "https://", "")}"
+#         }
+#         Action = "sts:AssumeRoleWithWebIdentity"
+#         Condition = {
+#           StringEquals = {
+#             "${replace(aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer, "https://", "")}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
+#             "${replace(aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer, "https://", "")}:aud" = "sts.amazonaws.com"
+#           }
+#         }
+#       }
+#     ]
+#   })
 
-  tags = {
-    Name        = "aws-load-balancer-controller-role"
-    Environment = var.osdu_env
-  }
-}
+#   tags = {
+#     Name        = "aws-load-balancer-controller-role"
+#     Environment = var.osdu_env
+#   }
+# }
 
-# IAM Policy Document for AWS Load Balancer Controller
-data "aws_iam_policy_document" "aws_load_balancer_controller_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "iam:CreateServiceLinkedRole",
-      "ec2:DescribeAccountAttributes",
-      "ec2:DescribeAddresses",
-      "ec2:DescribeAvailabilityZones",
-      "ec2:DescribeInternetGateways",
-      "ec2:DescribeVpcs",
-      "ec2:DescribeSubnets",
-      "ec2:DescribeSecurityGroups",
-      "ec2:DescribeInstances",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DescribeTags",
-      "ec2:GetCoipPoolUsage",
-      "ec2:DescribeCoipPools",
-      "elasticloadbalancing:DescribeLoadBalancers",
-      "elasticloadbalancing:DescribeLoadBalancerAttributes",
-      "elasticloadbalancing:DescribeListeners",
-      "elasticloadbalancing:DescribeListenerCertificates",
-      "elasticloadbalancing:DescribeSSLPolicies",
-      "elasticloadbalancing:DescribeRules",
-      "elasticloadbalancing:DescribeTargetGroups",
-      "elasticloadbalancing:DescribeTargetGroupAttributes",
-      "elasticloadbalancing:DescribeTargetHealth",
-      "elasticloadbalancing:DescribeTags"
-    ]
-    resources = ["*"]
-  }
+# # IAM Policy Document for AWS Load Balancer Controller
+# data "aws_iam_policy_document" "aws_load_balancer_controller_policy" {
+#   statement {
+#     effect = "Allow"
+#     actions = [
+#       "iam:CreateServiceLinkedRole",
+#       "ec2:DescribeAccountAttributes",
+#       "ec2:DescribeAddresses",
+#       "ec2:DescribeAvailabilityZones",
+#       "ec2:DescribeInternetGateways",
+#       "ec2:DescribeVpcs",
+#       "ec2:DescribeSubnets",
+#       "ec2:DescribeSecurityGroups",
+#       "ec2:DescribeInstances",
+#       "ec2:DescribeNetworkInterfaces",
+#       "ec2:DescribeTags",
+#       "ec2:GetCoipPoolUsage",
+#       "ec2:DescribeCoipPools",
+#       "elasticloadbalancing:DescribeLoadBalancers",
+#       "elasticloadbalancing:DescribeLoadBalancerAttributes",
+#       "elasticloadbalancing:DescribeListeners",
+#       "elasticloadbalancing:DescribeListenerCertificates",
+#       "elasticloadbalancing:DescribeSSLPolicies",
+#       "elasticloadbalancing:DescribeRules",
+#       "elasticloadbalancing:DescribeTargetGroups",
+#       "elasticloadbalancing:DescribeTargetGroupAttributes",
+#       "elasticloadbalancing:DescribeTargetHealth",
+#       "elasticloadbalancing:DescribeTags"
+#     ]
+#     resources = ["*"]
+#   }
 
-  statement {
-    effect = "Allow"
-    actions = [
-      "cognito-idp:DescribeUserPoolClient",
-      "acm:ListCertificates",
-      "acm:DescribeCertificate",
-      "iam:ListServerCertificates",
-      "iam:GetServerCertificate",
-      "waf-regional:GetWebACL",
-      "waf-regional:GetWebACLForResource",
-      "waf-regional:AssociateWebACL",
-      "waf-regional:DisassociateWebACL",
-      "wafv2:GetWebACL",
-      "wafv2:GetWebACLForResource",
-      "wafv2:AssociateWebACL",
-      "wafv2:DisassociateWebACL",
-      "shield:DescribeProtection",
-      "shield:GetSubscriptionState",
-      "shield:DescribeSubscription",
-      "shield:CreateProtection",
-      "shield:DeleteProtection"
-    ]
-    resources = ["*"]
-  }
+#   statement {
+#     effect = "Allow"
+#     actions = [
+#       "cognito-idp:DescribeUserPoolClient",
+#       "acm:ListCertificates",
+#       "acm:DescribeCertificate",
+#       "iam:ListServerCertificates",
+#       "iam:GetServerCertificate",
+#       "waf-regional:GetWebACL",
+#       "waf-regional:GetWebACLForResource",
+#       "waf-regional:AssociateWebACL",
+#       "waf-regional:DisassociateWebACL",
+#       "wafv2:GetWebACL",
+#       "wafv2:GetWebACLForResource",
+#       "wafv2:AssociateWebACL",
+#       "wafv2:DisassociateWebACL",
+#       "shield:DescribeProtection",
+#       "shield:GetSubscriptionState",
+#       "shield:DescribeSubscription",
+#       "shield:CreateProtection",
+#       "shield:DeleteProtection"
+#     ]
+#     resources = ["*"]
+#   }
 
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:CreateSecurityGroup",
-      "ec2:CreateTags"
-    ]
-    resources = ["arn:aws:ec2:*:*:security-group/*"]
-    condition {
-      test     = "StringEquals"
-      variable = "ec2:CreateAction"
-      values   = ["CreateSecurityGroup"]
-    }
-    condition {
-      test     = "Null"
-      variable = "aws:RequestTag/elbv2.k8s.aws/cluster"
-      values   = ["false"]
-    }
-  }
+#   statement {
+#     effect = "Allow"
+#     actions = [
+#       "ec2:CreateSecurityGroup",
+#       "ec2:CreateTags"
+#     ]
+#     resources = ["arn:aws:ec2:*:*:security-group/*"]
+#     condition {
+#       test     = "StringEquals"
+#       variable = "ec2:CreateAction"
+#       values   = ["CreateSecurityGroup"]
+#     }
+#     condition {
+#       test     = "Null"
+#       variable = "aws:RequestTag/elbv2.k8s.aws/cluster"
+#       values   = ["false"]
+#     }
+#   }
 
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:CreateTags",
-      "ec2:DeleteTags"
-    ]
-    resources = ["arn:aws:ec2:*:*:security-group/*"]
-    condition {
-      test     = "Null"
-      variable = "aws:RequestTag/elbv2.k8s.aws/cluster"
-      values   = ["true"]
-    }
-    condition {
-      test     = "Null"
-      variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
-      values   = ["false"]
-    }
-  }
+#   statement {
+#     effect = "Allow"
+#     actions = [
+#       "ec2:CreateTags",
+#       "ec2:DeleteTags"
+#     ]
+#     resources = ["arn:aws:ec2:*:*:security-group/*"]
+#     condition {
+#       test     = "Null"
+#       variable = "aws:RequestTag/elbv2.k8s.aws/cluster"
+#       values   = ["true"]
+#     }
+#     condition {
+#       test     = "Null"
+#       variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
+#       values   = ["false"]
+#     }
+#   }
 
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:AuthorizeSecurityGroupIngress",
-      "ec2:RevokeSecurityGroupIngress",
-      "ec2:DeleteSecurityGroup"
-    ]
-    resources = ["*"]
-    condition {
-      test     = "Null"
-      variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
-      values   = ["false"]
-    }
-  }
+#   statement {
+#     effect = "Allow"
+#     actions = [
+#       "ec2:AuthorizeSecurityGroupIngress",
+#       "ec2:RevokeSecurityGroupIngress",
+#       "ec2:DeleteSecurityGroup"
+#     ]
+#     resources = ["*"]
+#     condition {
+#       test     = "Null"
+#       variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
+#       values   = ["false"]
+#     }
+#   }
 
-  statement {
-    effect = "Allow"
-    actions = [
-      "elasticloadbalancing:CreateLoadBalancer",
-      "elasticloadbalancing:CreateTargetGroup"
-    ]
-    resources = ["*"]
-    condition {
-      test     = "Null"
-      variable = "aws:RequestTag/elbv2.k8s.aws/cluster"
-      values   = ["false"]
-    }
-  }
+#   statement {
+#     effect = "Allow"
+#     actions = [
+#       "elasticloadbalancing:CreateLoadBalancer",
+#       "elasticloadbalancing:CreateTargetGroup"
+#     ]
+#     resources = ["*"]
+#     condition {
+#       test     = "Null"
+#       variable = "aws:RequestTag/elbv2.k8s.aws/cluster"
+#       values   = ["false"]
+#     }
+#   }
 
-  statement {
-    effect = "Allow"
-    actions = [
-      "elasticloadbalancing:CreateListener",
-      "elasticloadbalancing:DeleteListener",
-      "elasticloadbalancing:CreateRule",
-      "elasticloadbalancing:DeleteRule"
-    ]
-    resources = ["*"]
-  }
+#   statement {
+#     effect = "Allow"
+#     actions = [
+#       "elasticloadbalancing:CreateListener",
+#       "elasticloadbalancing:DeleteListener",
+#       "elasticloadbalancing:CreateRule",
+#       "elasticloadbalancing:DeleteRule"
+#     ]
+#     resources = ["*"]
+#   }
 
-  statement {
-    effect = "Allow"
-    actions = [
-      "elasticloadbalancing:AddTags",
-      "elasticloadbalancing:RemoveTags"
-    ]
-    resources = [
-      "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
-      "arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
-      "arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*"
-    ]
-    condition {
-      test     = "Null"
-      variable = "aws:RequestTag/elbv2.k8s.aws/cluster"
-      values   = ["true"]
-    }
-    condition {
-      test     = "Null"
-      variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
-      values   = ["false"]
-    }
-  }
+#   statement {
+#     effect = "Allow"
+#     actions = [
+#       "elasticloadbalancing:AddTags",
+#       "elasticloadbalancing:RemoveTags"
+#     ]
+#     resources = [
+#       "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
+#       "arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
+#       "arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*"
+#     ]
+#     condition {
+#       test     = "Null"
+#       variable = "aws:RequestTag/elbv2.k8s.aws/cluster"
+#       values   = ["true"]
+#     }
+#     condition {
+#       test     = "Null"
+#       variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
+#       values   = ["false"]
+#     }
+#   }
 
-  statement {
-    effect = "Allow"
-    actions = [
-      "elasticloadbalancing:ModifyLoadBalancerAttributes",
-      "elasticloadbalancing:SetIpAddressType",
-      "elasticloadbalancing:SetSecurityGroups",
-      "elasticloadbalancing:SetSubnets",
-      "elasticloadbalancing:DeleteLoadBalancer",
-      "elasticloadbalancing:ModifyTargetGroup",
-      "elasticloadbalancing:ModifyTargetGroupAttributes",
-      "elasticloadbalancing:DeleteTargetGroup"
-    ]
-    resources = ["*"]
-    condition {
-      test     = "Null"
-      variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
-      values   = ["false"]
-    }
-  }
+#   statement {
+#     effect = "Allow"
+#     actions = [
+#       "elasticloadbalancing:ModifyLoadBalancerAttributes",
+#       "elasticloadbalancing:SetIpAddressType",
+#       "elasticloadbalancing:SetSecurityGroups",
+#       "elasticloadbalancing:SetSubnets",
+#       "elasticloadbalancing:DeleteLoadBalancer",
+#       "elasticloadbalancing:ModifyTargetGroup",
+#       "elasticloadbalancing:ModifyTargetGroupAttributes",
+#       "elasticloadbalancing:DeleteTargetGroup"
+#     ]
+#     resources = ["*"]
+#     condition {
+#       test     = "Null"
+#       variable = "aws:ResourceTag/elbv2.k8s.aws/cluster"
+#       values   = ["false"]
+#     }
+#   }
 
-  statement {
-    effect = "Allow"
-    actions = [
-      "elasticloadbalancing:RegisterTargets",
-      "elasticloadbalancing:DeregisterTargets"
-    ]
-    resources = ["arn:aws:elasticloadbalancing:*:*:targetgroup/*/*"]
-  }
+#   statement {
+#     effect = "Allow"
+#     actions = [
+#       "elasticloadbalancing:RegisterTargets",
+#       "elasticloadbalancing:DeregisterTargets"
+#     ]
+#     resources = ["arn:aws:elasticloadbalancing:*:*:targetgroup/*/*"]
+#   }
 
-  statement {
-    effect = "Allow"
-    actions = [
-      "elasticloadbalancing:SetWebAcl",
-      "elasticloadbalancing:ModifyListener",
-      "elasticloadbalancing:AddListenerCertificates",
-      "elasticloadbalancing:RemoveListenerCertificates",
-      "elasticloadbalancing:ModifyRule"
-    ]
-    resources = ["*"]
-  }
-}
+#   statement {
+#     effect = "Allow"
+#     actions = [
+#       "elasticloadbalancing:SetWebAcl",
+#       "elasticloadbalancing:ModifyListener",
+#       "elasticloadbalancing:AddListenerCertificates",
+#       "elasticloadbalancing:RemoveListenerCertificates",
+#       "elasticloadbalancing:ModifyRule"
+#     ]
+#     resources = ["*"]
+#   }
+# }
 
-# Create IAM Policy
-resource "aws_iam_policy" "aws_load_balancer_controller_policy" {
-  name   = "AWSLoadBalancerControllerIAMPolicy"
-  policy = data.aws_iam_policy_document.aws_load_balancer_controller_policy.json
+# # Create IAM Policy
+# resource "aws_iam_policy" "aws_load_balancer_controller_policy" {
+#   name   = "AWSLoadBalancerControllerIAMPolicy"
+#   policy = data.aws_iam_policy_document.aws_load_balancer_controller_policy.json
 
-  tags = {
-    Name        = "AWSLoadBalancerControllerIAMPolicy"
-    Environment = var.osdu_env
-  }
-}
+#   tags = {
+#     Name        = "AWSLoadBalancerControllerIAMPolicy"
+#     Environment = var.osdu_env
+#   }
+# }
 
-# Attach Policy to Role
-resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller_policy" {
-  role       = aws_iam_role.aws_load_balancer_controller_role.name
-  policy_arn = aws_iam_policy.aws_load_balancer_controller_policy.arn
-}
+# # Attach Policy to Role
+# resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller_policy" {
+#   role       = aws_iam_role.aws_load_balancer_controller_role.name
+#   policy_arn = aws_iam_policy.aws_load_balancer_controller_policy.arn
+# }
 
-# ===================================
-# WAIT FOR CONTROLLER TO BE READY
-# ===================================
+# # ===================================
+# # WAIT FOR CONTROLLER TO BE READY
+# # ===================================
 
-# Wait for AWS Load Balancer Controller to be ready
-resource "time_sleep" "wait_for_alb_controller" {
-  depends_on = [helm_release.aws_load_balancer_controller]
+# # Wait for AWS Load Balancer Controller to be ready
+# resource "time_sleep" "wait_for_alb_controller" {
+#   depends_on = [helm_release.aws_load_balancer_controller]
   
-  create_duration = "120s"
-}
+#   create_duration = "120s"
+# }
 
-# ===================================
-# ISTIO INGRESS GATEWAY WITH ALB
-# ===================================
+# # ===================================
+# # ISTIO INGRESS GATEWAY WITH ALB
+# # ===================================
 
-# Deploying the Istio Ingress Gateway with ALB (depends on ALB controller)
-resource "helm_release" "istio_ingressgateway" {
-  name = "istio-ingressgateway"
-  chart     = "${path.module}/charts/${var.tar_istio_gateway}"
-  namespace = kubernetes_namespace.istio_gateway_namespace.metadata[0].name
-  version   = "1.21.0"
+# # Deploying the Istio Ingress Gateway with ALB (depends on ALB controller)
+# resource "helm_release" "istio_ingressgateway" {
+#   name = "istio-ingressgateway"
+#   chart     = "${path.module}/charts/${var.tar_istio_gateway}"
+#   namespace = kubernetes_namespace.istio_gateway_namespace.metadata[0].name
+#   version   = "1.21.0"
 
-  values = [
-    yamlencode({
-      image = {
-        repository = "docker.io/istio/proxyv2"
-        tag        = "1.21.0"
-        pullPolicy = "IfNotPresent"
-      }
+#   values = [
+#     yamlencode({
+#       image = {
+#         repository = "docker.io/istio/proxyv2"
+#         tag        = "1.21.0"
+#         pullPolicy = "IfNotPresent"
+#       }
 
-      service = {
-        type = "LoadBalancer"
-        # Correct ALB annotations
-        annotations = {
-          "service.beta.kubernetes.io/aws-load-balancer-type" = "external"
-          "service.beta.kubernetes.io/aws-load-balancer-class" = "service.k8s.aws/alb"
-          "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
-          "service.beta.kubernetes.io/aws-load-balancer-target-type" = "ip"
-          "service.beta.kubernetes.io/aws-load-balancer-backend-protocol" = "HTTP"
-          "service.beta.kubernetes.io/aws-load-balancer-listen-ports" = "[{\"HTTP\":80}, {\"HTTPS\":443}]"
-          "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol" = "HTTP"
-          "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path" = "/healthz/ready"
-          "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port" = "15021"
-        }
+#       service = {
+#         type = "LoadBalancer"
+#         # Correct ALB annotations
+#         annotations = {
+#           "service.beta.kubernetes.io/aws-load-balancer-type" = "external"
+#           "service.beta.kubernetes.io/aws-load-balancer-class" = "service.k8s.aws/alb"
+#           "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
+#           "service.beta.kubernetes.io/aws-load-balancer-target-type" = "ip"
+#           "service.beta.kubernetes.io/aws-load-balancer-backend-protocol" = "HTTP"
+#           "service.beta.kubernetes.io/aws-load-balancer-listen-ports" = "[{\"HTTP\":80}, {\"HTTPS\":443}]"
+#           "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol" = "HTTP"
+#           "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path" = "/healthz/ready"
+#           "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port" = "15021"
+#         }
         
-        ports = [
-          {
-            port       = 80
-            targetPort = 8080
-            name       = "http"
-            protocol   = "TCP"
-          },
-          {
-            port       = 443
-            targetPort = 8443
-            name       = "https"
-            protocol   = "TCP"
-          }
-        ]
-      }
+#         ports = [
+#           {
+#             port       = 80
+#             targetPort = 8080
+#             name       = "http"
+#             protocol   = "TCP"
+#           },
+#           {
+#             port       = 443
+#             targetPort = 8443
+#             name       = "https"
+#             protocol   = "TCP"
+#           }
+#         ]
+#       }
 
-      nodeSelector = {
-        "node-role" = "osdu_istio_node"
-      }
+#       nodeSelector = {
+#         "node-role" = "osdu_istio_node"
+#       }
 
-      tolerations = [
-        {
-          key      = "role"
-          operator = "Equal"
-          value    = "osdu_istio_node"
-          effect   = "NoSchedule"
-        }
-      ]
+#       tolerations = [
+#         {
+#           key      = "role"
+#           operator = "Equal"
+#           value    = "osdu_istio_node"
+#           effect   = "NoSchedule"
+#         }
+#       ]
 
-      # Enhanced resource configuration for ALB
-      resources = {
-        requests = {
-          cpu    = "200m"
-          memory = "256Mi"
-        }
-        limits = {
-          cpu    = "1000m"
-          memory = "512Mi"
-        }
-      }
+#       # Enhanced resource configuration for ALB
+#       resources = {
+#         requests = {
+#           cpu    = "200m"
+#           memory = "256Mi"
+#         }
+#         limits = {
+#           cpu    = "1000m"
+#           memory = "512Mi"
+#         }
+#       }
 
-      # Horizontal Pod Autoscaler
-      autoscaling = {
-        enabled = true
-        minReplicas = 2
-        maxReplicas = 5
-        targetCPUUtilizationPercentage = 70
-      }
-    })
-  ]
+#       # Horizontal Pod Autoscaler
+#       autoscaling = {
+#         enabled = true
+#         minReplicas = 2
+#         maxReplicas = 5
+#         targetCPUUtilizationPercentage = 70
+#       }
+#     })
+#   ]
   
-  wait    = true
-  timeout = 800
+#   wait    = true
+#   timeout = 800
   
-  # Proper dependencies - wait for ALB controller to be ready
-  depends_on = [
-    helm_release.osdu_istio_istiod,
-    kubernetes_namespace.istio_gateway_namespace,
-    helm_release.aws_load_balancer_controller,
-    time_sleep.wait_for_alb_controller
-  ]
-}
+#   # Proper dependencies - wait for ALB controller to be ready
+#   depends_on = [
+#     helm_release.osdu_istio_istiod,
+#     kubernetes_namespace.istio_gateway_namespace,
+#     helm_release.aws_load_balancer_controller,
+#     time_sleep.wait_for_alb_controller
+#   ]
+# }
 
 
 
@@ -879,63 +879,63 @@ resource "helm_release" "istio_ingressgateway" {
 #   ]
 # }
 
-# # Deploying the Istio Ingress Gateway
-# resource "helm_release" "istio_ingressgateway" {
-#   name = "istio-ingressgateway"
-#   /* Using the downloaded chart to maintain version consistency */
-#   # repository = "https://istio-release.storage.googleapis.com/charts"
-#   # chart      = "gateway"
-#   chart     = "${path.module}/charts/${var.tar_istio_gateway}"
-#   namespace = kubernetes_namespace.istio_gateway_namespace.metadata[0].name
-#   version   = "1.21.0"
+# Deploying the Istio Ingress Gateway
+resource "helm_release" "istio_ingressgateway" {
+  name = "istio-ingressgateway"
+  /* Using the downloaded chart to maintain version consistency */
+  # repository = "https://istio-release.storage.googleapis.com/charts"
+  # chart      = "gateway"
+  chart     = "${path.module}/charts/${var.tar_istio_gateway}"
+  namespace = kubernetes_namespace.istio_gateway_namespace.metadata[0].name
+  version   = "1.21.0"
 
-#   values = [
-#     yamlencode({
-#       image = {
-#         repository = "docker.io/istio/proxyv2"
-#         tag        = "1.21.0"
-#         pullPolicy = "IfNotPresent"
-#       }
+  values = [
+    yamlencode({
+      image = {
+        repository = "docker.io/istio/proxyv2"
+        tag        = "1.21.0"
+        pullPolicy = "IfNotPresent"
+      }
 
-#       service = {
-#         type = "LoadBalancer"
-#         ports = [
-#           {
-#             port       = 80
-#             targetPort = 8080
-#             name       = "http2"
-#           },
-#           {
-#             port       = 443
-#             targetPort = 8443
-#             name       = "https"
-#           }
-#         ]
-#       }
+      service = {
+        type = "LoadBalancer"
+        ports = [
+          {
+            port       = 80
+            targetPort = 8080
+            name       = "http2"
+          },
+          {
+            port       = 443
+            targetPort = 8443
+            name       = "https"
+          }
+        ]
+      }
 
-#       nodeSelector = {
-#         "node-role" = "osdu_istio_node"
-#       }
+      nodeSelector = {
+        "node-role" = "osdu_istio_node"
+      }
 
-#       tolerations = [
-#         {
-#           key      = "role"
-#           operator = "Equal"
-#           value    = "osdu_istio_node"
-#           effect   = "NoSchedule"
-#         }
-#       ]
-#     })
-#   ]
+      tolerations = [
+        {
+          key      = "role"
+          operator = "Equal"
+          value    = "osdu_istio_node"
+          effect   = "NoSchedule"
+        }
+      ]
+    })
+  ]
   
-#   wait    = true
-#   timeout = 600
+  wait    = true
+  timeout = 600
   
-#   depends_on = [
-#     helm_release.osdu_istio_istiod,
-#     kubernetes_namespace.istio_gateway_namespace
-#   ]
-# }
+  depends_on = [
+    helm_release.osdu_istio_istiod,
+    kubernetes_namespace.istio_gateway_namespace
+  ]
+}
 
 # Wait for ingress gateway to become available
 resource "null_resource" "wait_for_ingressgateway" {
