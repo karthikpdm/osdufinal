@@ -25,12 +25,12 @@ resource "aws_iam_role" "prometheus_ingest_role" {
         Action = "sts:AssumeRoleWithWebIdentity"
         Effect = "Allow"
         Principal = {
-          Federated = aws_iam_openid_connect_provider.eks_cluster.arn
+          Federated = aws_iam_openid_connect_provider.osdu_openid_provider.arn
         }
         Condition = {
           StringEquals = {
-            "${replace(aws_iam_openid_connect_provider.eks_cluster.url, "https://", "")}:sub" = "system:serviceaccount:prometheus:amp-iamproxy-ingest-service-account"
-            "${replace(aws_iam_openid_connect_provider.eks_cluster.url, "https://", "")}:aud" = "sts.amazonaws.com"
+            "${replace(aws_iam_openid_connect_provider.osdu_openid_provider.url, "https://", "")}:sub" = "system:serviceaccount:prometheus:amp-iamproxy-ingest-service-account"
+            "${replace(aws_iam_openid_connect_provider.osdu_openid_provider.url, "https://", "")}:aud" = "sts.amazonaws.com"
           }
         }
       }
@@ -465,7 +465,7 @@ resource "time_sleep" "wait_for_prometheus" {
 
 # Step 6: Grafana IAM role for AMP access
 resource "aws_iam_role" "grafana_service_role" {
-  name = "grafana-amp-service-role"
+  name = "grafana-amp-service-roles"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
