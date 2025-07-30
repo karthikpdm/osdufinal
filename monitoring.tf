@@ -570,7 +570,7 @@ resource "null_resource" "setup_validation" {
       echo "   Step 5: Enhanced scraping configured ✓"
       echo ""
       echo "📊 Infrastructure Details:"
-      echo "   - EKS Cluster: ${aws_eks_cluster.main.name}"
+      echo "   - EKS Cluster: ${aws_eks_cluster.osdu_eks_cluster_regional.name}"
       echo "   - AMP Workspace: ${aws_prometheus_workspace.prometheus_workspace.id}"
       echo "   - VPC Endpoint: ${aws_vpc_endpoint.aps_workspaces.dns_entry[0].dns_name}"
       echo "   - Grafana: ${aws_grafana_workspace.grafana.endpoint}"
