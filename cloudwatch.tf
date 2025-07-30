@@ -97,18 +97,16 @@ resource "helm_release" "fluent-bit" {
   repository = "https://aws.github.io/eks-charts"
   version    = "0.1.32"
   namespace  = kubernetes_namespace.monitoring.id
-
-  set {
-    name  = "serviceAccount.create"
-    value = "false"
-  }
   
-  set {
-    name  = "serviceAccount.name"
-    value = kubernetes_service_account.fluent-bit.metadata[0].name
-  }
-
-  values = [local.fluent_bit_yaml]
+  values = [
+    local.fluent_bit_yaml,
+    yamlencode({
+      serviceAccount = {
+        create = false
+        name   = kubernetes_service_account.fluent-bit.metadata[0].name
+      }
+    })
+  ]
 }
 
 resource "helm_release" "aws-cloudwatch-metrics" {
@@ -117,20 +115,15 @@ resource "helm_release" "aws-cloudwatch-metrics" {
   repository = "https://aws.github.io/eks-charts"
   namespace  = kubernetes_namespace.monitoring.id
 
-  set {
-    name  = "serviceAccount.create"
-    value = "false"
-  }
-
-  set {
-    name  = "clusterName"
-    value = aws_eks_cluster.osdu_eks_cluster_regional.name
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    value = kubernetes_service_account.cloudwatch-metrics.metadata[0].name
-  }
+  values = [
+    yamlencode({
+      serviceAccount = {
+        create = false
+        name   = kubernetes_service_account.cloudwatch-metrics.metadata[0].name
+      }
+      clusterName = aws_eks_cluster.osdu_eks_cluster_regional.name
+    })
+  ]
 }
 
 resource "aws_iam_policy" "aws_cloudwatch" {
