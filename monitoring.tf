@@ -25,12 +25,12 @@ resource "aws_iam_role" "prometheus_ingest_role" {
         Action = "sts:AssumeRoleWithWebIdentity"
         Effect = "Allow"
         Principal = {
-          Federated = aws_iam_openid_connect_provider.osdu_eks_cluster_regional.arn
+          Federated = aws_iam_openid_connect_provider.eks_clusteronal.arn
         }
         Condition = {
           StringEquals = {
-            "${replace(aws_iam_openid_connect_provider.osdu_eks_cluster_regional.url, "https://", "")}:sub" = "system:serviceaccount:prometheus:amp-iamproxy-ingest-service-account"
-            "${replace(aws_iam_openid_connect_provider.osdu_eks_cluster_regional.url, "https://", "")}:aud" = "sts.amazonaws.com"
+            "${replace(aws_iam_openid_connect_provider.eks_cluster.url, "https://", "")}:sub" = "system:serviceaccount:prometheus:amp-iamproxy-ingest-service-account"
+            "${replace(aws_iam_openid_connect_provider.eks_cluster.url, "https://", "")}:aud" = "sts.amazonaws.com"
           }
         }
       }
@@ -671,7 +671,7 @@ output "verification_commands" {
     check_iam_role          = "aws iam get-role --role-name prometheus-amp-ingest-role"
     check_amp_workspace     = "aws amp describe-workspace --workspace-id ${aws_prometheus_workspace.prometheus_workspace.id}"
     check_grafana_workspace = "aws grafana describe-workspace --workspace-id ${aws_grafana_workspace.grafana.id}"
-    check_ebs_csi_addon     = "aws eks describe-addon --cluster-name ${aws_eks_cluster.main.name} --addon-name aws-ebs-csi-driver"
+    # check_ebs_csi_addon     = "aws eks describe-addon --cluster-name ${aws_eks_cluster.main.name} --addon-name aws-ebs-csi-driver"
     
     # Cluster resource monitoring
     check_node_resources    = "kubectl top nodes"
