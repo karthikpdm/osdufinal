@@ -96,17 +96,17 @@ resource "helm_release" "fluent-bit" {
   name       = "aws-for-fluent-bit"
   repository = "https://aws.github.io/eks-charts"
   version    = "0.1.32"
+  namespace  = kubernetes_namespace.monitoring.id
 
   set {
     name  = "serviceAccount.create"
     value = "false"
   }
+  
   set {
     name  = "serviceAccount.name"
     value = kubernetes_service_account.fluent-bit.metadata[0].name
   }
-  
-  namespace = kubernetes_namespace.monitoring.id
 
   values = [local.fluent_bit_yaml]
 }
@@ -115,6 +115,7 @@ resource "helm_release" "aws-cloudwatch-metrics" {
   chart      = "aws-cloudwatch-metrics"
   name       = "aws-cloudwatch-metrics"
   repository = "https://aws.github.io/eks-charts"
+  namespace  = kubernetes_namespace.monitoring.id
 
   set {
     name  = "serviceAccount.create"
@@ -130,9 +131,6 @@ resource "helm_release" "aws-cloudwatch-metrics" {
     name  = "serviceAccount.name"
     value = kubernetes_service_account.cloudwatch-metrics.metadata[0].name
   }
-
-  namespace = kubernetes_namespace.monitoring.id
-
 }
 
 resource "aws_iam_policy" "aws_cloudwatch" {
@@ -172,15 +170,13 @@ resource "aws_iam_policy" "aws_cloudwatch" {
       ]
     })
     
-    tags = merge(
-    { "Name"    = "AWSCloudwatchIAMPolicy" },
-    
-  )
-
+  tags = {
+    Name = "AWSCloudwatchIAMPolicy"
+  }
 }
 
 resource "aws_iam_role" "fluent-bit" {
-  name = "AmazonEKSFluentbitRole-poc"
+  name = "AmazonEKSFluentbitRole-${var.osdu_env}"
   path = "/"
 
   assume_role_policy = jsonencode(
@@ -190,28 +186,26 @@ resource "aws_iam_role" "fluent-bit" {
         {
           "Effect" : "Allow",
           "Principal" : {
-            "Federated" : "${aws_iam_openid_connect_provider.osdu_eks_cluster_regional.arn}"
+            "Federated" : "${aws_iam_openid_connect_provider.osdu_openid_provider.arn}"
           },
           "Action" : "sts:AssumeRoleWithWebIdentity",
-          "Condition" : {
-            "StringEquals" : {
-              "${replace(aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer, "https://", "")}:sub" : "system:serviceaccount:${kubernetes_namespace.monitoring.id}:aws-for-fluent-bit",
-              "${replace(aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer, "https://", "")}:aud" : "sts.amazonaws.com"
+          "Condition" = {
+            "StringEquals" = {
+              "${replace(aws_iam_openid_connect_provider.osdu_openid_provider.url, "https://", "")}:sub" = "system:serviceaccount:${kubernetes_namespace.monitoring.id}:aws-for-fluent-bit"
+              "${replace(aws_iam_openid_connect_provider.osdu_openid_provider.url, "https://", "")}:aud" = "sts.amazonaws.com"
             }
           }
         }
       ]
     })
     
-    tags = merge(
-    { "Name"    = "AmazonEKSFluentbitRole-poc" },
-    
-  )
-
+  tags = {
+    Name = "AmazonEKSFluentbitRole-${var.osdu_env}"
+  }
 }
 
 resource "aws_iam_role" "cloudwatch-metrics" {
-  name = "AmazonEKSCloudwatchMetricsRole-poc"
+  name = "AmazonEKSCloudwatchMetricsRole-${var.osdu_env}"
   path = "/"
 
   assume_role_policy = jsonencode(
@@ -221,24 +215,22 @@ resource "aws_iam_role" "cloudwatch-metrics" {
         {
           "Effect" : "Allow",
           "Principal" : {
-            "Federated" : "${aws_iam_openid_connect_provider.osdu_eks_cluster_regional.arn}"
+            "Federated" : "${aws_iam_openid_connect_provider.osdu_openid_provider.arn}"
           },
           "Action" : "sts:AssumeRoleWithWebIdentity",
-          "Condition" : {
-            "StringEquals" : {
-              "${replace(aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer, "https://", "")}:sub" : "system:serviceaccount:${kubernetes_namespace.monitoring.id}:aws-cloudwatch-metrics",
-              "${replace(aws_eks_cluster.osdu_eks_cluster_regional.identity[0].oidc[0].issuer, "https://", "")}:aud" : "sts.amazonaws.com"
+          "Condition" = {
+            "StringEquals" = {
+              "${replace(aws_iam_openid_connect_provider.osdu_openid_provider.url, "https://", "")}:sub" = "system:serviceaccount:${kubernetes_namespace.monitoring.id}:aws-cloudwatch-metrics"
+              "${replace(aws_iam_openid_connect_provider.osdu_openid_provider.url, "https://", "")}:aud" = "sts.amazonaws.com"
             }
           }
         }
       ]
     })
     
-    tags = merge(
-    { "Name"    = "AmazonEKSCloudwatchMetricsRole-poc" },
-    
-  )
-
+  tags = {
+    Name = "AmazonEKSCloudwatchMetricsRole-${var.osdu_env}"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "aws-fluent-bit" {
@@ -266,11 +258,9 @@ resource "aws_iam_policy" "cloudwatch-agent-custom-policy" {
       ]
     })
     
-    tags = merge(
-    { "Name"    = "AWSCloudwatchMetricsIAMPolicy" },
-    
-  )
-
+  tags = {
+    Name = "AWSCloudwatchMetricsIAMPolicy"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "aws-cloudwatch-metrics-CloudWatchAgentServerPolicy" {
@@ -289,8 +279,7 @@ resource "aws_cloudwatch_log_group" "fluent-bit" {
   
   # kms_key_id  = data.aws_kms_key.cloudwatch-log-group.arn
 
-  tags = merge(
-    { "Name"    = "bsp-eks-cluster-logs-poc" },
-    
-  )
+  tags = {
+    Name = "${var.eks_cluster_name}-eks-cluster-logs-${var.osdu_env}"
+  }
 }
