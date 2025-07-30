@@ -617,8 +617,8 @@ output "prometheus_monitoring_setup" {
     }
     
     eks_cluster = {
-      name     = aws_eks_cluster.main.name
-      endpoint = aws_eks_cluster.main.endpoint
+      name     = aws_eks_cluster.osdu_eks_cluster_regional.name
+      endpoint = aws_eks_cluster.osdu_eks_cluster_regional.endpoint
     }
   }
 }
