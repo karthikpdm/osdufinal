@@ -190,7 +190,7 @@ resource "aws_iam_role" "fluent-bit" {
         {
           "Effect" : "Allow",
           "Principal" : {
-            "Federated" : "${aws_iam_openid_connect_provider.eks.arn}"
+            "Federated" : "${aws_iam_openid_connect_provider.osdu_eks_cluster_regional.arn}"
           },
           "Action" : "sts:AssumeRoleWithWebIdentity",
           "Condition" : {
@@ -221,7 +221,7 @@ resource "aws_iam_role" "cloudwatch-metrics" {
         {
           "Effect" : "Allow",
           "Principal" : {
-            "Federated" : "${aws_iam_openid_connect_provider.eks.arn}"
+            "Federated" : "${aws_iam_openid_connect_provider.osdu_eks_cluster_regional.arn}"
           },
           "Action" : "sts:AssumeRoleWithWebIdentity",
           "Condition" : {
