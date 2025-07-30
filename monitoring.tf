@@ -748,7 +748,7 @@ output "monitoring_queries" {
   }
 }
 
-output "troubleshooting_guide" {
+output "troubleshooting_guides" {
   description = "Common troubleshooting scenarios and commands"
   value = {
     # Pod issues
