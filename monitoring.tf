@@ -25,7 +25,7 @@ resource "aws_iam_role" "prometheus_ingest_role" {
         Action = "sts:AssumeRoleWithWebIdentity"
         Effect = "Allow"
         Principal = {
-          Federated = aws_iam_openid_connect_provider.eks_clusteronal.arn
+          Federated = aws_iam_openid_connect_provider.eks_cluster.arn
         }
         Condition = {
           StringEquals = {
