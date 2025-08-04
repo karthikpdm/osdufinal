@@ -123,6 +123,12 @@ variable "aws_region" {
   default     = "us-east-1"  # Change as needed
 }
 
+variable "osdu_vpc_id" {
+  description = "VPC ID"
+  type        = string
+  default     = "vpc-05856fb88c3a2983e"
+}
+
 
 
 

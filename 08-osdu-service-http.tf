@@ -101,7 +101,7 @@ resource "helm_release" "osdu_install_services" {
         dataPartitionId = var.osdu_data_partition
         domain          = local.istio_gateway_domain
         onPremEnabled   = true
-        useHttps        = true # making this true will require us to install the tsl certificates mentione in domain.tls
+        useHttps        = false # making this true will require us to install the tsl certificates mentione in domain.tls
         limitsEnabled   = true
         logLevel        = "ERROR"
       }
@@ -137,7 +137,7 @@ resource "helm_release" "osdu_install_services" {
         persistence = {
           enabled      = true
           size         = "100Gi"
-          storageClass = "gp2"
+          storageClass = "osdu-ebs-storage"
           mountPath    = "/bitnami/minio/data" # FIXME: delete it after MinIO chart update
         }
         extraEnvVarsCM       = "minio-config"
@@ -221,7 +221,7 @@ resource "helm_release" "osdu_install_services" {
           persistence = {
             enabled      = true
             size         = "50Gi"
-            storageClass = "gp2"
+            storageClass = "osdu-ebs-storage"
           }
           resourcesPreset = "medium"
         }
@@ -259,7 +259,7 @@ resource "helm_release" "osdu_install_services" {
           replicas         = "1"
           persistence = {
             size         = "10Gi"
-            storageClass = "gp2"
+            storageClass = "osdu-ebs-storage"
           }
         }
 
@@ -271,7 +271,7 @@ resource "helm_release" "osdu_install_services" {
           replicas = "1"
           persistence = {
             size         = "100Gi"
-            storageClass = "gp2"
+            storageClass = "osdu-ebs-storage"
           }
         }
 
@@ -318,7 +318,7 @@ resource "helm_release" "osdu_install_services" {
           existingSecretDatabaseKey = "KEYCLOAK_DATABASE_NAME"
         }
 
-        proxy = "edge" # This value will become proxy="edge" when global.useHttps = true
+        proxy = "none" # This value will become proxy="edge" when global.useHttps = true
 
         nodeSelector = {
           "node-role" = "osdu_istio_node"
@@ -746,18 +746,13 @@ resource "helm_release" "osdu_install_services" {
       }
     })
   ]
-  timeout           = 1200
+  timeout           = 1800
   wait              = true
   dependency_update = true
   depends_on = [
-    aws_eks_addon.osdu_csi_addon,
+    kubernetes_storage_class.osdu_ebs_storage,
     null_resource.update_kubeconfig,
     null_resource.label_default_namespace,
-    helm_release.istio_ingressgateway,
-    kubernetes_secret.osdu_tls_secret,
-    kubernetes_secret.minio_tls_secret,
-    kubernetes_secret.s3_tls_secret,
-    kubernetes_secret.airflow_tls_secret,
-    kubernetes_secret.keycloak_tls_secret
+    helm_release.istio_ingressgateway
   ]
 }

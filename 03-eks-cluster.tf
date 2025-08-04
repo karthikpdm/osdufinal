@@ -170,8 +170,8 @@ resource "aws_eks_cluster" "osdu_eks_cluster_regional" {
     # Reference existing security group from datasource.tf
     security_group_ids      = [aws_security_group.eks_cluster.id]
     endpoint_private_access = true
-    endpoint_public_access  = false  # API server NOT accessible from internet
-    public_access_cidrs     = []     # Empty since public access is disabled
+    endpoint_public_access  = true  # API server NOT accessible from internet
+    public_access_cidrs     = ["0.0.0.0/0"]     # Empty since public access is disabled
     # endpoint_public_access  = var.enable_public_access # Set to false for private clusters
     # public_access_cidrs     = var.enable_public_access ? var.public_access_cidrs : []
   }
