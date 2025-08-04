@@ -1008,7 +1008,7 @@ EOF
 
   depends_on = [
     helm_release.istio_ingressgateway,
-    kubernetes_secret.osdu_tls_secret,
+    # kubernetes_secret.osdu_tls_secret,
     null_resource.update_kubeconfig,
     null_resource.wait_for_ingressgateway
   ]
