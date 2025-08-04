@@ -990,25 +990,12 @@ spec:
         name: http
         protocol: HTTP
       hosts:
-        - osdu.${local.istio_gateway_domain}
-      tls:
-        httpsRedirect: true
-    - port:
-        number: 443
-        name: https
-        protocol: HTTPS
-      tls:
-        mode: SIMPLE
-        credentialName: osdu-ingress-tls
-      hosts:
-        - osdu.${local.istio_gateway_domain}
+        - osdu.${local.istio_gateway_domain}      
 EOF
     EOT
   }
-
   depends_on = [
     helm_release.istio_ingressgateway,
-    # kubernetes_secret.osdu_tls_secret,
     null_resource.update_kubeconfig,
     null_resource.wait_for_ingressgateway
   ]
