@@ -149,7 +149,7 @@ resource "aws_iam_role_policy_attachment" "osdu_eks_cluster_policy_attach_region
 
 # CloudWatch Log Group for EKS cluster logging
 resource "aws_cloudwatch_log_group" "osdu_eks_cluster_regional" {
-  name              = "/aws/eks/${var.eks_cluster_name}/cluster"
+  name              = "/aws/eks/${var.eks_cluster_name}/cluster11"
   retention_in_days = "7"
 
   tags = {

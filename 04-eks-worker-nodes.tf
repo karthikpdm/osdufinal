@@ -311,7 +311,7 @@ resource "aws_iam_role_policy_attachment" "osdu_eks_registry_policy_attach_regio
 
 # IAM instance profile for worker nodes
 resource "aws_iam_instance_profile" "osdu_node_profile_regional" {
-  name = "osdu_node_profile_regional"
+  name = "osdu_node_profile_regional1"
   role = aws_iam_role.osdu_worker_node_role_regional.name
 }
 
